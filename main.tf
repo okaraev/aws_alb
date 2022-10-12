@@ -1,5 +1,5 @@
 provider "aws" {
-  region     = var.region
+  region = var.region
 }
 
 resource "aws_security_group" "lb_sg" {
@@ -42,31 +42,12 @@ resource "aws_lb_listener" "lb_listener" {
     certificate_arn = var.lb_listener_cert_arn
 
     default_action {
-      type = "forward"
+        type = "fixed-response"
 
-      target_group_arn = aws_lb_target_group.lb_tg.arn
+        fixed_response {
+            content_type = "text/plain"
+            message_body = "Resource not found"
+            status_code  = "404"
+        }
     }
-}
-
-resource "aws_lb_target_group" "lb_tg" {
-    name = "${var.lb_name}-tg"
-    port = var.lb_target_port
-    protocol = var.lb_target_protocol
-    vpc_id = var.vpc_id
-
-    health_check {
-        healthy_threshold = var.lb_target_healthcheck_healthy_threshold
-        unhealthy_threshold = var.lb_target_healthcheck_unhealthy_threshold
-        timeout = var.lb_target_healthcheck_timeout
-        path = var.lb_target_healthcheck_path
-        protocol = local.alb_target_protocol
-        port = local.alb_target_port
-        interval = var.lb_target_healthcheck_interval
-        matcher = var.lb_target_healthcheck_matcher
-    }
-}
-
-resource "aws_lb_target_group_attachment" "instance_as_target" {
-  target_group_arn = aws_lb_target_group.lb_tg.arn
-  target_id        = var.lb_target_instance_id
 }
